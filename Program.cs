@@ -1,13 +1,14 @@
 ﻿using System.IO.Pipes;
 using System.Security.Cryptography.X509Certificates;
 
-int totalJugador;
-int totalDealer;
-string msg = "";
+double presupuesto = 1000;
 const int BLACKJACK = 21;
 const int DEALER_LIMIT = 17;
-double presupuesto = 1000;
+// const string palos[] = ["♠", "♥", "♦", "♣"];
 double apuesta;
+List<int> cartasJugador = new List<int>();
+List<int> cartasDealer = new List<int>();
+string msg = "";
 do
 {
     mostrarPresupuesto();
@@ -71,29 +72,33 @@ void Jugar()
     )
     {
         Console.Clear();
-        Random random = new Random();
-        int card1Player = random.Next(1, 11);
-        int card2Player = random.Next(1, 11);
-        int card1Dealer = random.Next(1, 11);
-        int card2Dealer = random.Next(1, 11);
+        RepartirCartas();
+        // Console.WriteLine($"Cartas del Dealer: [ {cartasDealer.First()}, X ]");
+        // Console.WriteLine($"Tus cartas son: [ {string.Join(" - ", cartasJugador.GetRange(0, 2))} ]");
+        // Console.WriteLine("¿Quieres pedir otra carta? (s/n)");
+        // string input = Console.ReadLine();
+        // if (input == "n" || input == "N")
+        // {
+        //     cartasJugador.RemoveRange(2, cartasJugador.Count - 2);
+        // }
+        // else if (true)
+        // {
 
-        totalJugador = card1Player + card2Player;
-        totalDealer = card1Dealer + card2Dealer;
-
-        if (totalJugador > BLACKJACK)
+        // }
+        if (cartasJugador.Sum() > BLACKJACK)
         {
             presupuesto = presupuesto + 1.5 * apuesta;
             msg = "¡Perdiste!";
         }
-        else if (totalDealer > BLACKJACK)
+        else if (cartasDealer.Sum() > BLACKJACK)
         {
             msg = "¡Ganaste!";
         }
-        else if (totalJugador > totalDealer)
+        else if (cartasJugador.Sum() > cartasDealer.Sum())
         {
             msg = "¡Ganaste!";
         }
-        else if (totalDealer >= totalJugador)
+        else if (cartasDealer.Sum() >= cartasJugador.Sum())
         {
             msg = "¡Perdiste!";
         }
@@ -101,7 +106,7 @@ void Jugar()
         {
             msg = "¡Empate!";
         }
-        Console.WriteLine($"{msg} \n Tus cartas son: {card1Player} y {card2Player}\n y el dealer tiene: {card1Dealer} y {card2Dealer}\n {msg}");
+        Console.WriteLine($"{msg} \n Tus cartas son: [{string.Join(", ", cartasJugador)}]\n y el Dealer tiene: [{string.Join(", ", cartasDealer)}]\n {msg}");
     }
 }
 
@@ -124,6 +129,34 @@ Boolean IniciarPartida()
     }
     presupuesto -= apuesta;
     return true;
+}
+
+void RepartirCartas()
+{
+    Random random = new Random();
+    // (1*4) + (2*4) + (3*3) = 21 => 4+4+3 = máx 11 cartas
+    List<int> cj = new List<int>();
+    while (cartasDealer.Sum() < DEALER_LIMIT && cartasDealer.Count < 11)
+    {
+        cartasDealer.Add(random.Next(1, 11));
+        // Console.WriteLine($"Carta Dealer: {cartasDealer.Last()}. Acumulado: {cartasDealer.Sum()}");
+    }
+    Console.WriteLine($"Cartas del Dealer: [ {cartasDealer.First()}, X ]");
+    while (cartasJugador.Sum() <= 21 && cartasJugador.Count < 11)
+    {
+        cartasJugador.Add(random.Next(1, 11));
+        if (cartasJugador.Count >= 2)
+        {
+            Console.WriteLine($"Tus cartas son: [ {string.Join(" - ", cartasJugador)} ]");
+            Console.WriteLine("¿Quieres pedir otra carta? (s/n)");
+            string input = Console.ReadLine();
+            if (input == "n" || input == "N")
+            {
+                return;
+            }
+        }
+        // Console.WriteLine($"Carta Jugador: {cartasJugador.Last()}. Acumulado: {cartasJugador.Sum()}");
+    }
 }
 
 void mostrarPresupuesto()
